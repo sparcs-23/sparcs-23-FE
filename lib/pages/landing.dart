@@ -3,152 +3,417 @@ import '../main.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'activity.dart';
+import 'event.dart';
+import 'package:intl/intl.dart';
+
+//import 'package:just_audio/just_audio.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({super.key});
-
+  const LandingPage(
+      {super.key,
+      required this.userName,
+      required this.starName,
+      required this.activityList});
+  final String userName;
+  final String starName;
+  final List activityList;
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
 
 class _LandingPageState extends State<LandingPage> {
-  List dummyActivity = [
-    {
-      'name': '임영웅 월평역 생일카페 인증',
-      'D-Day': '20240815',
-      'attendee': '120',
-      'content':
-          '임영웅의 30번째 생일을 기념하여 팬들이 마련한 생일카페! 임영웅의 다양한 사진과 활동을 기념하는 장식들을 보며 함께 축하하고, 기쁨을 나누는 시간을 보내요!'
-    },
-  ];
-
   late String newsSummary = '';
   Future getNews() async {
-    // await http
-    //     .get(
-    //   Uri.parse(
-    //       "http://deepurban.kaist.ac.kr:5000/news-summary-aegyo/%EC%9E%84%EC%98%81%EC%9B%85/%EC%98%A5%EC%9E%90%EB%88%84%EB%82%98"),
-    // )
-    //     .then((value) {
-    //   setState(() {
-    //     newsSummary = jsonDecode(utf8.decode(value.bodyBytes));
-    //   });
-    // });
     http.Response response = await http.get(
       Uri.parse(
-          "http://deepurban.kaist.ac.kr:5000/news-summary-aegyo/%EC%9E%84%EC%98%81%EC%9B%85/%EC%98%A5%EC%9E%90%EB%88%84%EB%82%98"),
-    );
-    return jsonDecode(utf8.decode(response.bodyBytes))['result'];
-  }
-
-  void getNews2() async {
-    http.Response response = await http.get(
-      Uri.parse(
-          "http://deepurban.kaist.ac.kr:5000/news-summary-aegyo/%EC%9E%84%EC%98%81%EC%9B%85/%EC%98%A5%EC%9E%90%EB%88%84%EB%82%98"),
+          "https://crystal.kaist.ac.kr/news-summary-aegyo/${widget.starName}/${widget.userName}"),
     );
     setState(() {
       newsSummary = jsonDecode(utf8.decode(response.bodyBytes))['result'];
     });
-    print(newsSummary);
+    return jsonDecode(utf8.decode(response.bodyBytes))['result'];
   }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    //getNews2();
   }
+
+  final player = AudioPlayer();
+  List iconList = ['Cake.png', 'Picture.png'];
+
+  Future<void> playVoice(url) async {
+    await player.play(UrlSource(url));
+    setState(() => _playerState = PlayerState.playing);
+  }
+
+  void voiceListen() async {
+    if (widget.starName == '임영웅') {
+      http.Response response = await http.post(
+        Uri.parse("https://crystal.kaist.ac.kr/herovoice"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          "text": newsSummary,
+        }),
+      );
+      playVoice(
+          'https://crystal.kaist.ac.kr${jsonDecode(utf8.decode(response.bodyBytes))['url']}');
+    } else {
+      http.Response response = await http.post(
+        Uri.parse("https://crystal.kaist.ac.kr/againvoice"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          "text": newsSummary,
+        }),
+      );
+      playVoice(
+          'https://crystal.kaist.ac.kr${jsonDecode(utf8.decode(response.bodyBytes))['url']}');
+    }
+  }
+
+  void readPost(eventInfo) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return EventPage(eventInfo: eventInfo);
+    }));
+  }
+
+  PlayerState? _playerState;
+  bool get _isPlaying => _playerState == PlayerState.playing;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SubjectText(content: '오늘의 임영웅 뉴스 '),
-          Container(
-            padding: const EdgeInsets.fromLTRB(30, 15, 30, 15),
-            height: MediaQuery.of(context).size.height * 0.4,
-            decoration:
-                const BoxDecoration(color: Color.fromARGB(255, 224, 224, 224)),
-            child: SingleChildScrollView(
-                child: FutureBuilder(
-                    future: getNews(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else {
-                        return Text('${snapshot.data}');
+          SubjectText(content: '오늘의 ${widget.starName} 메시지'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(0))),
+                        contentPadding: EdgeInsets.zero,
+                        content: SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(30, 30, 30, 0),
+                                  child: SingleChildScrollView(
+                                    child: FutureBuilder(
+                                        future: getNews(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const Center(
+                                                child:
+                                                    CircularProgressIndicator());
+                                          } else if (snapshot.hasError) {
+                                            return Text(
+                                                'Error: ${snapshot.error}');
+                                          } else {
+                                            return Text('${snapshot.data}');
+                                          }
+                                        }),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                  flex: 1,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                        color:
+                                            Color.fromRGBO(255, 234, 234, 100)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          30, 20, 30, 20),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              voiceListen();
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(4),
+                                                  ),
+                                                  color: cs(context).onPrimary),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        20, 7, 20, 7),
+                                                child: Text(
+                                                  '내 가수 음성듣기',
+                                                  style: TextStyle(
+                                                    fontFamily:
+                                                        'PretendardBold',
+                                                    fontSize: 14,
+                                                    color: cs(context).primary,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 10,
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                DateFormat('yyyy.MM.dd')
+                                                    .format(DateTime.now())
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                    fontFamily:
+                                                        'PretendardSemiBold',
+                                                    color: Color.fromRGBO(
+                                                        75, 75, 75, 0.612)),
+                                              ),
+                                              Text('From ${widget.starName}',
+                                                  style: const TextStyle(
+                                                      fontFamily:
+                                                          'PretendardSemiBold',
+                                                      color: Color.fromRGBO(
+                                                          75, 75, 75, 0.612))),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ))
+                            ],
+                          ),
+                        ),
+                      ),
+                    ).then((val) {
+                      if (_isPlaying) {
+                        setState(() => _playerState = PlayerState.paused);
+                        player.dispose();
                       }
-                    })
-                //Text(newsSummary)
+                    });
+                  },
+                  child: Image.asset('assets/images/message.png',
+                      width: MediaQuery.of(context).size.width * 0.87,
+                      fit: BoxFit.cover),
                 ),
+              ),
+            ],
           ),
           const SubjectText(content: '내가 참여할 활동'),
           SizedBox(
-            height: MediaQuery.of(context).size.height * 0.4,
+            height: MediaQuery.of(context).size.height * 0.3,
             child: ListView.builder(
-                itemCount: dummyActivity.length,
+                itemCount: 2,
                 itemBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-                      child: Container(
-                        padding: const EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: const Color.fromRGBO(236, 236, 236, 100),
-                            width: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          readPost(widget.activityList[index]);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: const Color.fromRGBO(236, 236, 236, 100),
+                              width: 1,
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(10),
+                            ),
                           ),
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(dummyActivity[index]['name']),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        decoration: const BoxDecoration(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(4),
-                                            ),
-                                            color: Color.fromRGBO(
-                                                255, 234, 234, 100)),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(7.0),
-                                          child: Text(
-                                            '인증하러 가기',
-                                            style: TextStyle(
-                                                color: cs(context).primary),
-                                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.activityList[index]['Title'],
+                                      style: tt(context).titleLarge,
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.01),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          decoration: const BoxDecoration(
+                                              borderRadius: BorderRadius.all(
+                                                Radius.circular(4),
+                                              ),
+                                              color: Color.fromRGBO(
+                                                  255, 234, 234, 100)),
+                                          child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(7.0),
+                                              child: Text('인증하러 가기',
+                                                  style:
+                                                      tt(context).labelLarge)),
                                         ),
-                                      ),
-                                      Text(
-                                          '${DateTime.parse(dummyActivity[index]['D-Day']).difference(DateTime.now()).inDays}일 남음'),
-                                    ],
-                                  ),
-                                ],
+                                        SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.02),
+                                        Text(
+                                          '${widget.activityList[index]['DaysRemaining']}',
+                                          style: tt(context).labelMedium,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const Expanded(
-                              flex: 1,
-                              child: Icon(Icons.cake),
-                            ),
-                          ],
+                              Expanded(
+                                flex: 1,
+                                child: Image(
+                                    image: AssetImage(
+                                        'assets/images/${iconList[index]}')),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     )),
           ),
-          const SubjectText(content: '인기 많은 활동')
+          const SubjectText(content: '인기 많은 활동'),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: ListView.builder(
+                itemCount: 2,
+                itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 10),
+                      child: GestureDetector(
+                        onTap: () {
+                          readPost(widget.activityList[index + 4]);
+                        },
+                        child: ActivityWidget(
+                          widget: widget,
+                          index: index + 4,
+                        ),
+                      ),
+                    )),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class ActivityWidget extends StatelessWidget {
+  const ActivityWidget({
+    super.key,
+    required this.widget,
+    required this.index,
+  });
+
+  final LandingPage widget;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.2,
+      padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+      decoration: BoxDecoration(
+        image: DecorationImage(
+            colorFilter: const ColorFilter.mode(
+                Color.fromARGB(133, 0, 0, 0), BlendMode.darken),
+            image: NetworkImage(
+                "https://crystal.kaist.ac.kr${widget.activityList[index]['imgurl']}"),
+            fit: BoxFit.cover),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              DayRemainWidget(
+                  content: '${widget.activityList[index]['DaysRemaining']}'),
+            ],
+          ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+          Text(
+            widget.activityList[index]['Title'],
+            style: tt(context).headlineLarge,
+          ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${widget.activityList[index]['ParticipantCount']}',
+                style: tt(context).headlineSmall,
+              ),
+              Text(
+                '상세보기 >',
+                style: tt(context).labelSmall,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DayRemainWidget extends StatelessWidget {
+  const DayRemainWidget({
+    super.key,
+    required this.content,
+  });
+
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(6)),
+          color: Color.fromRGBO(255, 237, 224, 1)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+        child: Text(
+          content,
+          style: const TextStyle(
+            fontSize: 15,
+            fontFamily: 'PretendardSemiBold',
+            color: Color.fromRGBO(255, 142, 61, 1),
+          ),
+        ),
       ),
     );
   }
@@ -168,7 +433,7 @@ class SubjectText extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
       child: Text(
         content,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+        style: tt(context).displayLarge,
       ),
     );
   }

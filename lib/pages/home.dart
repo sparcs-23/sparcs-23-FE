@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:sparcs_fe/pages/profile.dart';
+import 'package:sparcs_fe/pages/ranking.dart';
 import 'activity.dart';
 import 'landing.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage(
+      {super.key,
+      required this.userName,
+      required this.starName,
+      required this.activityList});
+  final String userName;
+  final String starName;
+  final List activityList;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -19,18 +26,32 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    LandingPage(),
-    ActivityPage(),
-    ProfilePage(),
-  ];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Image(
+          image: const AssetImage('assets/images/textLogo.png'),
+          width: MediaQuery.of(context).size.width * 0.2,
+        ),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: _widgetOptions.elementAt(_selectedIndex),
+        padding: const EdgeInsets.fromLTRB(30, 10, 30, 10),
+        child: [
+          LandingPage(
+              userName: widget.userName,
+              starName: widget.starName,
+              activityList: widget.activityList),
+          ActivityPage(activityList: widget.activityList),
+          const ProfilePage(),
+        ].elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
@@ -39,7 +60,8 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.run_circle_outlined), label: '활동'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_pin), label: '프로필'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.star_outline_rounded), label: '랭킹'),
           ]),
     );
   }

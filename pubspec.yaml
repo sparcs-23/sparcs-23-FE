@@ -25,6 +25,15 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^2.27.0
   http: ^1.2.0
+  provider: ^6.1.2
+  just_audio: ^0.9.39
+  audioplayers: ^5.2.1
+  image_picker: ^1.0.8
+  camera: ^0.10.5+9
+  file_picker: ^8.0.0+1
+  intl: ^0.19.0
+  location: ^6.0.2
+  geolocator: ^11.1.0
 
 dev_dependencies:
   flutter_test:
@@ -47,9 +56,28 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  
+  fonts:
+    - family: PretendardBold
+      fonts:
+        - asset: assets/fonts/Pretendard-Bold.otf
+    - family: PretendardSemiBold
+      fonts:
+        - asset: assets/fonts/Pretendard-SemiBold.otf
+    - family: PretendardRegular
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
 
   assets:
     - assets/images/image12.png
+    - assets/images/background.png
+    - assets/images/message.png
+    - assets/images/logo.svg
+    - assets/images/sparcs_logo.png
+    - assets/images/startButton.png
+    - assets/images/textLogo.png
+    - assets/images/enterbutton.png
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
