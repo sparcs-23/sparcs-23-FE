@@ -22,49 +22,52 @@ class _ActivityPageState extends State<ActivityPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DropdownButton<String>(
-            focusColor: Colors.white,
-            value: dropdownValue,
-            elevation: 16,
-            underline: Container(
-              height: 2,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButton<String>(
+              focusColor: Colors.white,
+              value: dropdownValue,
+              elevation: 16,
+              underline: Container(
+                height: 2,
+              ),
+              onChanged: (String? value) {
+                // This is called when the user selects an item.
+                setState(() {
+                  dropdownValue = value!;
+                });
+              },
+              items: list.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: tt(context).displayLarge,
+                  ),
+                );
+              }).toList(),
             ),
-            onChanged: (String? value) {
-              // This is called when the user selects an item.
-              setState(() {
-                dropdownValue = value!;
-              });
-            },
-            items: list.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  style: tt(context).displayLarge,
-                ),
-              );
-            }).toList(),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: ListView.builder(
-                itemCount: widget.activityList.length,
-                itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 10),
-                      child: GestureDetector(
-                        onTap: () {
-                          readPost(widget.activityList[index]);
-                        },
-                        child: ActivityWidget(widget: widget, index: index),
-                      ),
-                    )),
-          ),
-        ],
+            SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: ListView.builder(
+                  itemCount: widget.activityList.length,
+                  itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 10),
+                        child: GestureDetector(
+                          onTap: () {
+                            readPost(widget.activityList[index]);
+                          },
+                          child: ActivityWidget(widget: widget, index: index),
+                        ),
+                      )),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -42,17 +42,14 @@ class _HomePageState extends State<HomePage> {
           width: MediaQuery.of(context).size.width * 0.2,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 10, 30, 10),
-        child: [
-          LandingPage(
-              userName: widget.userName,
-              starName: widget.starName,
-              activityList: widget.activityList),
-          ActivityPage(activityList: widget.activityList),
-          const ProfilePage(),
-        ].elementAt(_selectedIndex),
-      ),
+      body: [
+        LandingPage(
+            userName: widget.userName,
+            starName: widget.starName,
+            activityList: widget.activityList),
+        ActivityPage(activityList: widget.activityList),
+        const ProfilePage(),
+      ].elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,

@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
       if (permission == LocationPermission.denied) {
         // Permissions are denied, return early.
         setState(() {
-          _locationMessage = "Location permissions are denied";
+          _locationMessage = "위치 접근권한을 허용해주세요!";
         });
         return;
       }
